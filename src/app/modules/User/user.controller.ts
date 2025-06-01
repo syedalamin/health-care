@@ -99,6 +99,28 @@ const getMyProfile = catchAsync(async (req, res) => {
   });
 });
 
+
+const updateMyProfile = async (req: Request, res: Response) => {
+
+  try {
+
+
+
+    const result = await userServices.updateMyProfile(req.user,req.file, req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Updated successfully",
+      data: result,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err?.name || "Something went wrong",
+      error: err,
+    });
+  }
+};
 export const userController = {
   createAdmin,
   createDoctor,
@@ -106,4 +128,5 @@ export const userController = {
   getAllFromDB,
   changeProfileStatus,
   getMyProfile,
+  updateMyProfile
 };
