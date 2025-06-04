@@ -2,8 +2,15 @@ import express, { NextFunction, Request, Response } from "express";
 
 import { upload } from "../../../helpers/uploader";
 import { doctorControllers } from "./doctor.controller";
+import auth from "../../middlewares/auth";
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
+
+router.get("/", auth(UserRole.DOCTOR,UserRole.ADMIN, UserRole.SUPER_ADMIN), doctorControllers.getAllFromDB);
+
+
+router.get("/:id", auth(UserRole.DOCTOR,UserRole.ADMIN, UserRole.SUPER_ADMIN), doctorControllers.getByIdFromDB);
 
 router.patch(
   "/:id",
