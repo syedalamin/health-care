@@ -49,9 +49,34 @@ const updateIntoDB = catchAsync(async (req, res) => {
   });
 });
 
+const deleteFromDB = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await doctorServices.deleteFromDB(id);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Doctor is deleted successfully",
+    data: result,
+  });
+});
+
+
+const softDeleteFromDB = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await doctorServices.softDeleteFromDB(id);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Doctor is soft Delete successfully",
+    data: result,
+  });
+});
 
 export const doctorControllers = {
   updateIntoDB,
   getAllFromDB,
-  getByIdFromDB
+  getByIdFromDB,
+  softDeleteFromDB,
+  deleteFromDB
 };

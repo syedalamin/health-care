@@ -1,4 +1,4 @@
-import { Doctor, Prisma } from "@prisma/client";
+import { Doctor, Prisma, UserStatus } from "@prisma/client";
 import { calculatePagination } from "../../../helpers/calculatePagination";
 import { sendImageToCloudinary } from "../../../helpers/uploader";
 import prisma from "../../../shared/prisma";
@@ -151,8 +151,66 @@ const updateIntoDB = async (id: string, file: any, payload: any) => {
   return result;
 };
 
+
+const deleteFromDB = async (id: string): Promise<Doctor | null> => {
+  await prisma.doctor.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    const doctorDeletedData = await transactionClient.doctor.delete({
+      where: {
+        id,
+      },
+    });
+    await transactionClient.user.delete({
+      where: {
+        email: doctorDeletedData.email,
+      },
+    });
+
+    return doctorDeletedData;
+  });
+  return result;
+};
+
+const softDeleteFromDB = async (id: string) => {
+  await prisma.doctor.findUniqueOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    const doctorDeletedData = await transactionClient.doctor.update({
+      where: {
+        id,
+      },
+      data: {
+        isDeleted: true,
+      },
+    });
+    const userDeletedData = await transactionClient.user.update({
+      where: {
+        email: doctorDeletedData.email,
+      },
+      data: {
+        status: UserStatus.DELETED,
+      },
+    });
+
+    return doctorDeletedData;
+  });
+  return result;
+};
+
 export const doctorServices = {
   updateIntoDB,
   getAllFromDB,
-  getByIdFromDB
+  getByIdFromDB,
+  softDeleteFromDB,
+  deleteFromDB
 };
