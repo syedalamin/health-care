@@ -11,8 +11,10 @@ const getAllFromDB = async (
   options: IPaginationOptions
 ) => {
   const { limit, sortBy, sortOrder, page, skip } = calculatePagination(options);
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, specialties, ...filterData } = params;
   const andConditions: Prisma.DoctorWhereInput[] = [];
+
+  
 
   if (params.searchTerm) {
     andConditions.push({
@@ -23,6 +25,23 @@ const getAllFromDB = async (
         },
       })),
     });
+  }
+
+  if(specialties && specialties.length){
+    andConditions.push({
+
+        doctorSpecialties:{
+          some:{
+            specialties: {
+              title: {
+                contains:  specialties,
+                mode: 'insensitive'
+              }
+            }
+          }
+        }
+    })
+
   }
 
   if (Object.keys(filterData).length > 0) {
@@ -53,6 +72,13 @@ const getAllFromDB = async (
         : {
             createdAt: "desc",
           },
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialties: true,
+        },
+      },
+    },
   });
   const total = await prisma.doctor.count({
     where: whereConditions,
@@ -151,7 +177,6 @@ const updateIntoDB = async (id: string, file: any, payload: any) => {
   return result;
 };
 
-
 const deleteFromDB = async (id: string): Promise<Doctor | null> => {
   await prisma.doctor.findUniqueOrThrow({
     where: {
@@ -212,5 +237,5 @@ export const doctorServices = {
   getAllFromDB,
   getByIdFromDB,
   softDeleteFromDB,
-  deleteFromDB
+  deleteFromDB,
 };
